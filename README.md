@@ -1,4 +1,4 @@
-## Clone-Keras: Make Comprehensive Framework for Deep Learning [DEMO]
+## Clone-Keras: Framework for Deep Learning [DEMO]
 
 ![Clone-Keras logo](https://)
 
