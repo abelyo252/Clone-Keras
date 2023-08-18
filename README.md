@@ -1,5 +1,4 @@
-## Clone-Keras: Framework for Deep Learning [DEMO]
-
+# Clone-Keras: Framework for Deep Learning 
 ![Clone-Keras logo](https://)
 
 This repository serves as the development hub for dummy who want to build Deep learning from the scratch.
