@@ -1,13 +1,16 @@
 # Clone-Keras: Framework for Deep Learning 
 
- ![Image]([https://github.com/abelyo252/Image-Classification/blob/main/performance/dataset2.png](https://github.com/abelyo252/Clone-Keras/blob/main/XD%20File/clone-keras.png))
+Clone-Keras is a framework designed for deep learning tasks. Inspired by the popular Keras library, help students to know the underlined principle for Artificial neural network. This framework simplifies the process of creating neural networks. With a concise and intuitive syntax identical to keras aim developers can easily define ANN architectures using high-level building blocks, such as layers, activation functions, and optimizers. This is Mini version of Keras-API and help student how forward and backward propagation work.
+
+
+ ![Image](https://github.com/abelyo252/Clone-Keras/blob/main/XD%20File/clone-keras.png)
 
 This repository serves as the development hub for dummy who want to build Deep learning from the scratch.
 
 
 ## About Clone-Keras
 
-Keras Clone is a Python-based profound learning system planned to encourage the advancement of artificial neural systems from the scratch.
+Clone-Keras is a Python-based profound learning system planned to encourage the advancement of artificial neural systems from the scratch.
 It is built on mathematical point of view so apprentice able to get it the concept from the scratch and clarify designers almost how maths
 is run the framework, external code utilized for running ANN code take after keras so designers will not confounded by learning this system.
 This repo engages engineers and analysts to require full advantage of the adaptability
