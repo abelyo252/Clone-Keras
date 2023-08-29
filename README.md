@@ -19,9 +19,15 @@ and cross-platform capabilities arithmetic of manufactured neural organize.
 
 **The goal of Keras Clone is to empower developers about how math work in creating machine learning-powered applications.**
 
+
+## Optimizers
+Gradient Descent is an optimization algorithm that iteratively updates the parameters of a function by moving in the direction of steepest descent. The parameter update formula is as follows:
+<p align="center"> <img src="[https://render.githubusercontent.com/render/math?math= ↗](https://render.githubusercontent.com/render/math?math=)\theta = \theta - \alpha \cdot \nabla J(\theta)"> </p>
+
+
 ## Installation
 
-To install the most recent version of Clone-Keras, just follow these simple instructions. You must install Python versions 3.6.x to 3.9.x; we are using Python 3.6 for this project; you can download 3.6.8 from [here](https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe) ,if the two are incompatible, try another version by searching online. If git wasn't installed on your Windows PC, get it from `https://gitforwindows.org/` or install it on linux using `sudo apt-get install git` 
+To install the most recent version of Clone-Keras, just follow these simple instructions. I use Python 3.11.4 for this project; you can download 3.11.4 from [here](https://www.python.org/ftp/python/3.11.4/python-3.11.4-amd64.exe) ,if the two are incompatible, try another version by searching online. If git wasn't installed on your Windows PC, get it from `https://gitforwindows.org/` or install it on linux using `sudo apt-get install git` 
 
 `git clone https://github.com/abelyo252/Clone-Keras.git`<br>
 `cd Clone-Keras/`<br>
@@ -34,9 +40,9 @@ from model import sequential
 ---
 
 
-## Run Code
+## Run Code for training after define your achtecture in main.py
 
-`$ python pyNetwork.py`<br>
+`$ python main.py`<br>
 
 
 ---
@@ -59,10 +65,18 @@ Stacking layers is as easy as `.add()`:
 
 ```python
 from model import Sequential
+from dense import Dense
+from activation import Activation_ReLU , Activation_Softmax
+
 model = Sequential()
 
+model.add(Dense(units=128, input_shape=(28*28,), activation='relu'))
+model.add(Activation_ReLU())
 model.add(Dense(units=64, activation='relu'))
-model.add(Dense(units=10, activation='softmax'))
+model.add(Activation_ReLU())
+model.add(Dense(units=10, activation='relu'))
+model.add(Activation_Softmax())
+
 ```
 
 Once your model looks good, configure its learning process with `.compile()`:
@@ -70,28 +84,37 @@ Once your model looks good, configure its learning process with `.compile()`:
 ```python
 model.compile(loss='categorical_crossentropy',
               optimizer='sgd',
-              metrics=['accuracy'])
+              metrics=None)
 ```
 
-You can now iterate on your training data in batches:
+You can now iterate on your training data in batches and also save model using <yourmodel>.ab:
 
 ```python
 # x_train and y_train are Numpy arrays.
-model.fit(x_train, y_train, epochs=5, batch_size=32)
+model.fit(X_train, Y_train, epochs=num_epochs, batch_size=64)
+model.save_model('model/<yourmodel>.ab')
 ```
 
 
 
-generate predictions on new data:
+generate predictions on new data using saved model:
 
 ```python
-classes = model.predict(x_test, batch_size=128)
+    # Load the model with .ab extension
+    loaded_model = Sequential.load_model('model/mnist.ab')
+    # Make predictions using the model
+    data = X_test[0]
+    test_label = Y_test[0]
+
+
+    # Reshape the data to have shape (1, input_shape)
+    data = np.reshape(data, (1, -1))
+    prediction = loaded_model.predict(data)
+    predicted_label = np.argmax(prediction)
+
+    # Print the predicted label
+    print("Predicted label:", predicted_label)
 ```
-
-For more in-depth youtube tutorials about this framework, you can check out our youtube playlist:
-
--   [Introduction to Clone-Keras for engineers](https://youtube.com/intro_to_keras_for_engineers/)
-
 ---
 ## Support
 
@@ -111,6 +134,6 @@ in [GitHub issues](https://github.com/ab).
 
 ## Opening a PR
 
-We welcome contributions! Before opening a PR, please read
-[our contributor guide](https://github.com/keras-team/keras/blob/master/CONTRIBUTING.md),
-and the [API design guideline](https://github.com/keras-team/governance/blob/master/keras_api_design_guidelines.md).
+I'm welcome for contributions! Before opening a PR, please read
+[contributor guide](https://github.com/blob/master/CONTRIBUTING.md)
+
