@@ -1,5 +1,6 @@
 # Clone-Keras: Framework for Deep Learning 
-![Clone-Keras logo]([/clone-keras.png))
+
+ ![Image]([https://github.com/abelyo252/Image-Classification/blob/main/performance/dataset2.png](https://github.com/abelyo252/Clone-Keras/blob/main/XD%20File/clone-keras.png))
 
 This repository serves as the development hub for dummy who want to build Deep learning from the scratch.
 
