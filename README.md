@@ -123,6 +123,9 @@ model.add(Activation_Softmax())
 
 ```
 
+ ![Image](https://github.com/abelyo252/Clone-Keras/blob/main/ann_arch.png)
+
+ 
 Once your model looks good, configure its learning process with `.compile()`:
 
 ```python
