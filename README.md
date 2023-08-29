@@ -22,8 +22,52 @@ and cross-platform capabilities arithmetic of manufactured neural organize.
 
 ## Optimizers
 Gradient Descent is an optimization algorithm that iteratively updates the parameters of a function by moving in the direction of steepest descent. The parameter update formula is as follows:
-<p align="center"> <img src="[https://render.githubusercontent.com/render/math?math= ↗](https://render.githubusercontent.com/render/math?math=)\theta = \theta - \alpha \cdot \nabla J(\theta)"> </p>
+<p align="center"> <img src="https://github.com/abelyo252/Clone-Keras/blob/main/XD%20File/grad_descent.png"> </p>
 
+The algorithm starts with an initial guess for the parameters and then repeatedly updates them by taking steps proportional to the negative gradient of the function at that point. By moving in the direction opposite to the gradient, the algorithm gradually descends towards the minimum of the function.
+
+The general formula for the parameter update in gradient descent is as follows:
+```python
+parameter = parameter - learning_rate * gradient
+```
+
+<p align="center"> <img src="https://github.com/abelyo252/Clone-Keras/blob/main/optimization/grad.gif"> </p>
+
+# Forward and Backward Propagation
+Forward and Backpropagation can be effectively performed using a computational graph, which helps visualize and organize the computations involved in the forward and backward passes. As a beginner, it recognizes the gradients in the forward pass, calculates the required derivatives, and updates the network's parameters based on the optimization algorithm.i learnt from karpathy [Click His youtube tourial]([https://www.google.com](https://www.youtube.com/watch?v=VMj-3S1tku0&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)). you can find this on mini-keras folder
+
+Import Neccesary Python Modules
+```python
+from data import Data
+from visualization import visualize_computational_graph,concatenate_images
+import matplotlib.pyplot as plt
+```
+
+```python
+# inputs x1,x2
+x1 = Data(2.0, label='x1')
+x2 = Data(0.0, label='x2')
+# weights w1,w2
+w1 = Data(-3.0, label='w1')
+w2 = Data(1.0, label='w2')
+# bias of the neuron
+b = Data(6.8813735870195432, label='b')
+# x1*w1 + x2*w2 + b
+x1w1 = x1*w1; x1w1.label = 'x1*w1'
+x2w2 = x2*w2; x2w2.label = 'x2*w2'
+x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1*w1 + x2*w2'
+y = x1w1x2w2 + b; y.label = 'y'
+# visualized L graph now
+viz_Y = visualize_computational_graph(y)
+Data.backward(y)
+viz_back_y = visualize_computational_graph(y) # visualized final grad of all object
+
+# Concatenate the images horizontally
+concatenated_image = concatenate_images(viz_Y, viz_back_y, axis='horizontal')
+```
+
+This is the result of Linear Regression Backprop
+<p align="center"> <img src="https://github.com/abelyo252/Clone-Keras/blob/main/mini-keras/backprop.png"> </p>
 
 ## Installation
 
@@ -34,7 +78,7 @@ To install the most recent version of Clone-Keras, just follow these simple inst
 `pip install -r requirements.txt`<br>
 
 ```python
-from model import sequential
+from model import Sequential
 ```
 
 ---
