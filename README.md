@@ -123,7 +123,11 @@ model.add(Activation_Softmax())
 
 ```
 
- ![Image](https://github.com/abelyo252/Clone-Keras/blob/main/ann_arch.png)
+<p align="center">
+  <img src="https://github.com/abelyo252/Clone-Keras/blob/main/ann_arch.png" alt="Image" width="638" height="374">
+
+</p>
+---
 
  
 Once your model looks good, configure its learning process with `.compile()`:
