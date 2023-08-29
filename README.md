@@ -77,10 +77,6 @@ To install the most recent version of Clone-Keras, just follow these simple inst
 `cd Clone-Keras/`<br>
 `pip install -r requirements.txt`<br>
 
-```python
-from model import Sequential
-```
-
 ---
 
 
