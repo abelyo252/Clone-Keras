@@ -4,6 +4,7 @@
 
 ### *A Minimal, From-Scratch Deep Learning Framework in Pure Python & NumPy*
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abelyo252/Clone-Keras/blob/main/tutorials/mini_keras_demo.ipynb)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Framework](https://img.shields.io/badge/Framework-NumPy%20Only-orange.svg)](https://numpy.org/)
@@ -22,6 +23,14 @@
 **Mini-Keras** is an educational, lightweight deep learning framework designed to demonstrate the inner workings of artificial neural networks from first principles. Built entirely on top of **NumPy**, it mirrors the high-level API design of [Keras](https://keras.io/) while exposing clear, readable implementations of forward propagation, backpropagation, gradient calculation, parameter updates, and model serialization.
 
 Whether you are a student learning neural network mathematics or a developer curious about building deep learning libraries from scratch, **Mini-Keras** bridges the gap between high-level ML APIs and foundational calculus.
+
+---
+
+## ⚡ Try Instantly in Google Colab
+
+Click the badge below to open the complete end-to-end interactive demo directly in **Google Colab** (no local setup required):
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abelyo252/Clone-Keras/blob/main/tutorials/mini_keras_demo.ipynb)
 
 ---
 
@@ -233,7 +242,7 @@ Clone-Keras/
 │   ├── train_mnist.py          # MNIST training script
 │   └── load_saved_model.py     # Inference script
 └── tutorials/                  # Interactive Jupyter Notebook tutorials
-    └── mini_keras_demo.ipynb   # Complete walkthrough notebook
+    └── mini_keras_demo.ipynb   # Complete walkthrough notebook ([Open in Colab](https://colab.research.google.com/github/abelyo252/Clone-Keras/blob/main/tutorials/mini_keras_demo.ipynb))
 ```
 
 ---
