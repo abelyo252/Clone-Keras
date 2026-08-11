@@ -263,7 +263,7 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 - **Author**: Abel Yohannes
 - **GitHub**: [@abelyo252](https://github.com/abelyo252/)
-- **Telegram**: [@benyohanan](https://t.me/benyohanan)
+- **Telegram**: [@benyohanan](https://t.me/i_am_abel)
 
 ---
 
