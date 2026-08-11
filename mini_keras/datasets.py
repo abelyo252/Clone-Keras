@@ -1,13 +1,10 @@
 """
-Dataset Creater Module
+Dataset Module
 By: Abel Yohannes
 Website: https://github.com/abelyo252/
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import random
 import gzip
 import struct
 import os
@@ -42,8 +39,14 @@ def _read_idx_labels(filepath):
 
 def load_mnist(data_dir='mnist_data'):
     """
-    Download and load the MNIST dataset (no tensorflow needed).
-    Returns: (X_train, y_train), (X_test, y_test)
+    Download and load the MNIST dataset (pure numpy, no tensorflow).
+
+    Args:
+        data_dir: Directory to cache downloaded files.
+
+    Returns:
+        (X_train, y_train), (X_test, y_test) — images as uint8 arrays,
+        labels as uint8 arrays.
     """
     base_url = 'https://storage.googleapis.com/cvdf-datasets/mnist/'
     files = {
@@ -65,54 +68,18 @@ def load_mnist(data_dir='mnist_data'):
     return (X_train, y_train), (X_test, y_test)
 
 
-def to_categorical(y, num_classes):
-    """Convert class labels to one-hot encoded format (pure numpy)."""
-    one_hot = np.zeros((y.shape[0], num_classes), dtype='float32')
-    one_hot[np.arange(y.shape[0]), y] = 1.0
-    return one_hot
+def create_spiral_data(samples, classes, test_size=0.2):
+    """
+    Create a spiral dataset for classification.
 
+    Args:
+        samples: Number of samples per class.
+        classes: Number of classes.
+        test_size: Fraction of data to use for testing.
 
-def create_mnist(train_data_path, train_labels_path, test_data_path, test_labels_path, test_size=0.2):
-    # Load training data
-    train_data = pd.read_csv(train_data_path)
-    train_labels = pd.read_csv(train_labels_path)
-
-    # Convert the data and labels to NumPy arrays
-    X_train = train_data.values.T
-    Y_train = train_labels.values.T
-
-    # Load testing data
-    test_data = pd.read_csv(test_data_path)
-    test_labels = pd.read_csv(test_labels_path)
-
-    # Convert the data and labels to NumPy arrays
-    X_test = test_data.values.T
-    Y_test = test_labels.values.T
-
-    return X_train, Y_train, X_test, Y_test
-
-def visualize_mnist_images(images, labels, digit_labels, num_images=10):
-    # Select a subset of images to visualize
-    random_indices = np.random.choice(images.shape[0], num_images, replace=False)
-    selected_images = images[random_indices]
-    selected_labels = labels[random_indices]
-
-    # Visualize the images and labels
-    fig, axes = plt.subplots(2, 5, figsize=(10, 5))
-    axes = axes.flatten()
-
-    for i in range(num_images):
-        axes[i].imshow(selected_images[i].reshape(28, 28), cmap='gray')
-        axes[i].set_title('Label: ' + digit_labels[np.argmax(selected_labels[i])])
-        axes[i].axis('off')
-
-    plt.tight_layout()
-    plt.show()
-
-
-
-
-def create_data(samples, classes, test_size=0.2):
+    Returns:
+        X_train, y_train, X_test, y_test
+    """
     train_samples = int(samples * (1 - test_size))
     test_samples = samples - train_samples
 
@@ -141,12 +108,35 @@ def create_data(samples, classes, test_size=0.2):
 
     return X_train, y_train, X_test, y_test
 
+
 def visualize_dataset(X, y):
+    """Plot a 2D dataset with color-coded classes."""
+    import matplotlib.pyplot as plt
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap='viridis')
     plt.xlabel('X1')
     plt.ylabel('X2')
     plt.title('Dataset Visualization')
     plt.show()
 
-# See Github or Telegram Address for help at https://github.com/abelyo252/
-# https://t.me/benyohanan
+
+def visualize_mnist_images(images, labels, digit_labels, num_images=10):
+    """Visualize a subset of MNIST images."""
+    import matplotlib.pyplot as plt
+    random_indices = np.random.choice(images.shape[0], num_images, replace=False)
+    selected_images = images[random_indices]
+    selected_labels = labels[random_indices]
+
+    fig, axes = plt.subplots(2, 5, figsize=(10, 5))
+    axes = axes.flatten()
+
+    for i in range(num_images):
+        axes[i].imshow(selected_images[i].reshape(28, 28), cmap='gray')
+        axes[i].set_title('Label: ' + digit_labels[np.argmax(selected_labels[i])])
+        axes[i].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+
+# Legacy alias
+create_data = create_spiral_data

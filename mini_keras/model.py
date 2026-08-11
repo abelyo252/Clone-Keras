@@ -5,10 +5,13 @@ Website: https://github.com/abelyo252/
 """
 
 
-from activation import Activation_ReLU, Activation_Softmax,Activation_Tanh,Activation_Linear,Activation_Sigmoid
-from loss import Loss_CategoricalCrossEntropy
-from optimizer import Optimizer_Adam , Optimizer_SGD
-from dense import Dense
+from mini_keras.activations import (
+    Activation_ReLU, Activation_Softmax, Activation_Tanh,
+    Activation_Linear, Activation_Sigmoid
+)
+from mini_keras.losses import Loss_CategoricalCrossEntropy
+from mini_keras.optimizers import Optimizer_Adam, Optimizer_SGD
+from mini_keras.layers import Dense
 import numpy as np
 from tqdm import tqdm
 import pickle
@@ -151,6 +154,8 @@ class Sequential:
         return accuracy, data_loss
 
     def save_model(self, filepath):
+        import os
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, 'wb') as f:
             pickle.dump(self, f)
 
@@ -165,7 +170,7 @@ class Sequential:
         # Add layers to the network based on the loaded model
         for layer in loaded_model.layers:
             class_name = layer.__class__.__name__
-
+            
             if class_name == 'Dense' or isinstance(layer, Dense):
                 # Create a new Dense layer and copy trained weights/biases
                 new_layer = Dense(units=layer.units, input_shape=getattr(layer, 'input_shape', None))
@@ -187,6 +192,3 @@ class Sequential:
             model.add(new_layer)
 
         return model
-
-# See Github or Telegram Address for help at https://github.com/abelyo252/
-# https://t.me/benyohanan

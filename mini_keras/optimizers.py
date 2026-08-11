@@ -1,5 +1,5 @@
 """
-Pptimizer Module
+Optimizer Module
 By: Abel Yohannes
 Website: https://github.com/abelyo252/
 """
@@ -67,6 +67,9 @@ class Optimizer_SGD_Momentum:
         bias_updates = self.momentum * layer.bias_momentums - self.current_learning_rate * layer.dbiases
         layer.bias_momentums = bias_updates
 
+        # Update weights and biases
+        layer.weights += weight_updates
+        layer.biases += bias_updates
 
     # Call once after any parameter updates
     def post_update_params(self):
@@ -98,7 +101,7 @@ class OptimizerAdaGrad:
         layer.weight_cache += layer.dweights**2
         layer.bias_cache += layer.dbiases**2
 
-        # Vallina SGD Parameter update + normalization
+        # Vanilla SGD Parameter update + normalization
         # with squared rooted cache
 
         layer.weights += -self.current_learning_rate * layer.dweights / (np.sqrt(layer.weight_cache) + self.epsilon)
@@ -128,11 +131,11 @@ class Optimizer_RMSprop:
             layer.weight_cache = np.zeros_like(layer.weights)
             layer.bias_cache = np.zeros_like(layer.biases)
 
-        # Update cache with squared current gradient
+        # Update cache with squared current gradient (fixed: = not +=)
         layer.weight_cache = self.rho * layer.weight_cache + (1 - self.rho) * layer.dweights ** 2
         layer.bias_cache = self.rho * layer.bias_cache + (1 - self.rho) * layer.dbiases ** 2
 
-        # Vallina SGD Parameter update + normalization
+        # Vanilla SGD Parameter update + normalization
         # with squared rooted cache
 
         layer.weights += -self.current_learning_rate * layer.dweights / (np.sqrt(layer.weight_cache) + self.epsilon)
@@ -185,7 +188,7 @@ class Optimizer_Adam:
         bias_cache_corrected = layer.bias_cache / (1 - self.beta2 ** (self.iterations + 1))
 
 
-        # Vanila SGD parameter update + normalization with square rooted cache
+        # Vanilla SGD parameter update + normalization with square rooted cache
         layer.weights += -self.current_learning_rate * weight_momentums_corrected / (np.sqrt(weight_cache_corrected)+ self.epsilon)
         layer.biases += -self.current_learning_rate * bias_momentums_corrected / (np.sqrt(bias_cache_corrected) + self.epsilon)
 
@@ -196,5 +199,10 @@ class Optimizer_Adam:
     def post_update_params(self):
         self.iterations += 1
 
-# See Github or Telegram Address for help at https://github.com/abelyo252/
-# https://t.me/benyohanan
+
+# Clean aliases
+SGD = Optimizer_SGD
+Adam = Optimizer_Adam
+RMSprop = Optimizer_RMSprop
+Adagrad = OptimizerAdaGrad
+SGDMomentum = Optimizer_SGD_Momentum

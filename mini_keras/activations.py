@@ -5,10 +5,6 @@ Website: https://github.com/abelyo252/
 """
 
 
-# Import standard modules.
-import sys
-import os
-
 # Import non-standard modules.
 import numpy as np
 
@@ -29,7 +25,6 @@ class Activation_ReLU:
         return self.output
 
     def backward(self, dvalues):
-        #print("Relu receive dvalue ", dvalues)
         self.dinputs = dvalues.copy()
         self.dinputs[self.input <= 0] = 0
 
@@ -64,8 +59,6 @@ class Activation_Softmax:
             jacobian_matrix = np.diagflat(single_output) - np.dot(single_output, single_output.T)
             self.dinputs[index] = np.dot(jacobian_matrix, single_dvalues)
 
-        #print("Softmax Dinput ", self.dinputs)
-
         return self.dinputs
 
 
@@ -81,7 +74,7 @@ class Activation_Sigmoid:
         return f"Sigmoid(X={self.input}, Output={self.output})"
 
     # Implement Method
-    def forward(self,inputs, training):
+    def forward(self, inputs, training=True):
         # Remember Input Value
         self.inputs = inputs
         # Calculate Output
@@ -93,7 +86,7 @@ class Activation_Sigmoid:
         self.dinputs = dvalues * (1 - self.output) * self.output
         return self.dinputs
 
-    def prediction(self,outputs):
+    def prediction(self, outputs):
         return (outputs > 0.5) * 1
 
 
@@ -131,13 +124,12 @@ class Activation_Tanh:
     def __str__(self):
         return f"Tanh(X={self.input}, Output={self.output})"
 
-    def forward(self, inputs, training):
+    def forward(self, inputs, training=True):
         self.inputs = inputs
         self.output = np.tanh(inputs)
         return self.output
 
     def backward(self, dvalues):
-        self.dinputs = dvalues.copy()
         self.dinputs = dvalues * (1 - np.power(self.output, 2))
         return self.dinputs
 
@@ -145,5 +137,9 @@ class Activation_Tanh:
         return np.where(outputs > 0, 1, -1)
 
 
-# See Github or Telegram Address for help at https://github.com/abelyo252/
-# https://t.me/benyohanan
+# Clean aliases
+ReLU = Activation_ReLU
+Softmax = Activation_Softmax
+Sigmoid = Activation_Sigmoid
+Linear = Activation_Linear
+Tanh = Activation_Tanh

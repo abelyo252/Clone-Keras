@@ -1,0 +1,23 @@
+# Python / Virtual Environment
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Datasets & Models (cached data)
+mnist_data/
+*.ab
+*.pkl
+
+# IDE / Editor
+.vscode/
+.idea/
+.gemini/

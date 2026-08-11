@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-keras"
+version = "0.1.0"
+description = "A minimal Keras-like deep learning framework built from scratch with NumPy"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    {name = "Abel Yohannes", email = "abelyo252@gmail.com"},
+]
+keywords = ["deep-learning", "neural-network", "machine-learning", "keras", "numpy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+datasets = ["matplotlib", "pandas"]
+all = ["matplotlib", "pandas"]
+
+[project.urls]
+Homepage = "https://github.com/abelyo252/Clone-Keras"
+Repository = "https://github.com/abelyo252/Clone-Keras"
+
+[tool.setuptools.packages.find]
+include = ["mini_keras*"]

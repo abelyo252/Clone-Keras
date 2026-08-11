@@ -71,96 +71,90 @@ This is the result of Linear Regression Backprop
 
 ## Installation
 
-To install the most recent version of Clone-Keras, just follow these simple instructions. I use Python 3.11.4 for this project; you can download 3.11.4 from [here](https://www.python.org/ftp/python/3.11.4/python-3.11.4-amd64.exe) ,if the two are incompatible, try another version by searching online. If git wasn't installed on your Windows PC, get it from `https://gitforwindows.org/` or install it on linux using `sudo apt-get install git` 
+To install **Mini-Keras** directly as a library via `pip`:
 
-`git clone https://github.com/abelyo252/Clone-Keras.git`<br>
-`cd Clone-Keras/`<br>
-`pip install -r requirements.txt`<br>
-
----
-
-
-## Run Code for training after define your achtecture in main.py
-
-`$ python main.py`<br>
-
-
----
-
-## First contact with This Framework
-
-The core data structures of Clone-Keras are the same as keras
-The only sort of show is the [`Sequential` model](https://keras.io/guides/sequential_model/), a direct stack of layers. This System
-is still in demo form, so we didnt consolidate utilitarian api, too this repo didnt claim that clone entire keras thing from the scratch, we as it were actualize ANN as it were
-
-Here is the `Sequential` model:
-
-```python
-from model import Sequential
-
-model = Sequential()
+```bash
+pip install git+https://github.com/abelyo252/Clone-Keras.git
 ```
 
-Stacking layers is as easy as `.add()`:
+Or install locally in editable mode:
+
+```bash
+git clone https://github.com/abelyo252/Clone-Keras.git
+cd Clone-Keras
+pip install -e .
+```
+
+---
+
+## Quickstart & Example Usage
+
+The core data structures of Mini-Keras mimic Keras API with a `Sequential` model stacking layers.
+
+### Building a Model
 
 ```python
-from model import Sequential
-from dense import Dense
-from activation import Activation_ReLU , Activation_Softmax
+from mini_keras import Sequential, Dense
+from mini_keras.activations import ReLU, Softmax
 
 model = Sequential()
 
-model.add(Dense(units=128, input_shape=(28*28,), activation='relu'))
-model.add(Activation_ReLU())
-model.add(Dense(units=64, activation='relu'))
-model.add(Activation_ReLU())
-model.add(Dense(units=10, activation='relu'))
-model.add(Activation_Softmax())
-
+model.add(Dense(units=128, input_shape=(28*28,)))
+model.add(ReLU())
+model.add(Dense(units=64))
+model.add(ReLU())
+model.add(Dense(units=10))
+model.add(Softmax())
 ```
 
 <p align="center">
   <img src="https://github.com/abelyo252/Clone-Keras/blob/main/ann_arch.png" alt="Image" width="638" height="374">
-
 </p>
+
 ---
 
- 
-Once your model looks good, configure its learning process with `.compile()`:
+### Compiling and Training
+
+Configure learning process with `.compile()`:
 
 ```python
 model.compile(loss='categorical_crossentropy',
-              optimizer='sgd',
-              metrics=None)
+              optimizer='adam',
+              metrics=['accuracy'])
 ```
 
-You can now iterate on your training data in batches and also save model using <yourmodel>.ab:
+Train on data and save the model:
 
 ```python
-# x_train and y_train are Numpy arrays.
-model.fit(X_train, Y_train, epochs=num_epochs, batch_size=64)
-model.save_model('model/<yourmodel>.ab')
+from mini_keras.datasets import load_mnist
+from mini_keras.utils import to_categorical
+
+(X_train, y_train), (X_test, y_test) = load_mnist()
+
+X_train = X_train.reshape(-1, 28 * 28).astype('float32') / 255.0
+Y_train = to_categorical(y_train, num_classes=10)
+
+model.fit(X_train, Y_train, epochs=15, batch_size=64)
+model.save_model('model/mnist.ab')
 ```
 
+### Loading and Predicting
 
-
-generate predictions on new data using saved model:
+Generate predictions on new data using a saved model:
 
 ```python
-    # Load the model with .ab extension
-    loaded_model = Sequential.load_model('model/mnist.ab')
-    # Make predictions using the model
-    data = X_test[0]
-    test_label = Y_test[0]
+import numpy as np
+from mini_keras import Sequential
 
+# Load model
+loaded_model = Sequential.load_model('model/mnist.ab')
 
-    # Reshape the data to have shape (1, input_shape)
-    data = np.reshape(data, (1, -1))
-    prediction = loaded_model.predict(data)
-    predicted_label = np.argmax(prediction)
+# Predict
+sample_data = np.reshape(X_test[0], (1, -1))
+prediction = loaded_model.predict(sample_data)
+predicted_label = np.argmax(prediction)
 
-    # Print the predicted label
-    print("Predicted label:", predicted_label)
+print("Predicted label:", predicted_label)
 ```
 ---
 ## Support

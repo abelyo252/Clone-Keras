@@ -1,18 +1,15 @@
 """
-Implement Your Archetecture
-By: Abel Yohannes
-Website: https://github.com/abelyo252/
+Train MNIST with Mini-Keras
+Example script demonstrating how to use the mini_keras library.
 """
 
-
 import numpy as np
-from activation import Activation_ReLU , Activation_Softmax
-from loss import Loss_CategoricalCrossEntropy
-from optimizer import Optimizer_Adam
-from dataset import create_data , visualize_dataset , load_mnist, to_categorical
-from dense import Dense
 import matplotlib.pyplot as plt
-from model import Sequential
+from mini_keras import Sequential, Dense
+from mini_keras.activations import ReLU, Softmax
+from mini_keras.datasets import load_mnist
+from mini_keras.utils import to_categorical
+
 
 def plot_loss_and_accuracy(history):
     loss = history['loss']
@@ -30,10 +27,6 @@ def plot_loss_and_accuracy(history):
 
 
 def main():
-
-    #X_train, y_train, X_test, y_test = create_data(samples=5000, classes=3, test_size=0.2)
-    #visualize_dataset(X_train, y_train)
-
     # Load and preprocess the MNIST data
     (X_train, y_train), (X_test, y_test) = load_mnist()
 
@@ -53,33 +46,29 @@ def main():
     model = Sequential()
 
     # Add layers to the model
-    model.add(Dense(units=128, input_shape=(28*28,)))
-    model.add(Activation_ReLU())
+    model.add(Dense(units=128, input_shape=(28 * 28,)))
+    model.add(ReLU())
     model.add(Dense(units=64))
-    model.add(Activation_ReLU())
+    model.add(ReLU())
     model.add(Dense(units=10))
-    model.add(Activation_Softmax())
+    model.add(Softmax())
 
     # Compile model with loss, optimizer, and metrics
     model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
                   metrics=['accuracy'])
 
-    # User-defined number of epochs
-    num_epochs = 15
     # Training
+    num_epochs = 15
     history = model.fit(X_train, Y_train, epochs=num_epochs, batch_size=64)
+
     # Plotting accuracy and loss
     plot_loss_and_accuracy(history)
-    # Save the model with .ab extension
+
+    # Save the model
     model.save_model('model/mnist.ab')
+    print("Model saved to model/mnist.ab")
 
 
-
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
-
-# See Github or Telegram Address for help at https://github.com/abelyo252/
-# https://t.me/benyohanan
