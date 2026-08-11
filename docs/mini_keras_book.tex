@@ -1,0 +1,1228 @@
+\documentclass[12pt, a4paper]{report}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{float}
+
+\usetikzlibrary{arrows.meta, positioning, calc, decorations.markings}
+\pgfplotsset{compat=1.18}
+
+\geometry{margin=1in}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    urlcolor=blue!60!black,
+    citecolor=green!50!black
+}
+
+% ============================================================
+% THEOREM ENVIRONMENTS
+% ============================================================
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+
+% ============================================================
+% CUSTOM BOXES
+% ============================================================
+\newtcolorbox{keyidea}[1][]{
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    fonttitle=\bfseries,
+    title={Key Idea},
+    #1
+}
+
+\newtcolorbox{numexample}[1][]{
+    colback=green!5!white,
+    colframe=green!50!black,
+    fonttitle=\bfseries,
+    title={Numerical Example},
+    #1
+}
+
+\newtcolorbox{warning}[1][]{
+    colback=red!5!white,
+    colframe=red!75!black,
+    fonttitle=\bfseries,
+    title={Common Mistake},
+    #1
+}
+
+% ============================================================
+% CODE LISTING STYLE
+% ============================================================
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue!80!black}\bfseries,
+    commentstyle=\color{green!50!black}\itshape,
+    stringstyle=\color{red!60!black},
+    showstringspaces=false,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    breaklines=true,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+% ============================================================
+% HEADERS / FOOTERS
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{Mini-Keras}
+\fancyfoot[C]{\thepage}
+
+% ============================================================
+% TITLE
+% ============================================================
+\title{
+    \vspace{-1cm}
+    {\Huge\bfseries Building a Neural Network Framework\\[0.3cm] from Scratch}\\[1cm]
+    {\Large The Mathematics Behind Mini-Keras}\\[0.5cm]
+    {\large A Beginner's Guide with Proofs \& Numerical Examples}
+}
+\author{
+    \textbf{Abel Yohannes}\\
+    \texttt{https://github.com/abelyo252/}
+}
+\date{\today}
+
+% ============================================================
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================
+\chapter{Introduction}
+
+\section{What Is a Neural Network?}
+
+A neural network is a mathematical function $f: \mathbb{R}^n \to \mathbb{R}^m$ that maps an input vector $\mathbf{x} \in \mathbb{R}^n$ to an output vector $\hat{\mathbf{y}} \in \mathbb{R}^m$. It is composed of a sequence of simpler functions called \textit{layers}, each involving a linear transformation followed by a non-linear \textit{activation function}.
+
+\begin{definition}[Artificial Neuron]
+A single neuron computes:
+\begin{equation}
+    z = \sum_{i=1}^{n} w_i x_i + b = \mathbf{w}^\top \mathbf{x} + b
+\end{equation}
+where $\mathbf{w} \in \mathbb{R}^n$ is the weight vector, $b \in \mathbb{R}$ is the bias, and $\mathbf{x} \in \mathbb{R}^n$ is the input vector. The output of the neuron is $a = \sigma(z)$, where $\sigma$ is an activation function.
+\end{definition}
+
+\begin{numexample}
+Consider a single neuron with 2 inputs:
+\[
+\mathbf{x} = \begin{bmatrix} 0.8 & -0.5 \end{bmatrix}, \quad
+\mathbf{w} = \begin{bmatrix} 1.2 & 0.4 \end{bmatrix}, \quad
+b = -0.1
+\]
+\textbf{Step 1 (Linear combination)}:
+\[
+z = w_1 x_1 + w_2 x_2 + b = (1.2)(0.8) + (0.4)(-0.5) - 0.1 = 0.96 - 0.20 - 0.10 = \boxed{0.66}
+\]
+\textbf{Step 2 (Activation via Sigmoid)}:
+\[
+a = \sigma(z) = \frac{1}{1 + e^{-0.66}} = \frac{1}{1 + 0.5169} = \boxed{0.6593}
+\]
+\end{numexample}
+
+\section{Architecture of a Feedforward Network}
+
+A feedforward neural network with $L$ layers can be written as:
+\begin{equation}
+    \hat{\mathbf{y}} = f(\mathbf{x}) = \sigma_L\bigl(W_L \cdot \sigma_{L-1}\bigl(\cdots \sigma_1(W_1 \mathbf{x} + \mathbf{b}_1) \cdots\bigr) + \mathbf{b}_L\bigr)
+\end{equation}
+
+For each layer $\ell = 1, 2, \ldots, L$:
+\begin{align}
+    \mathbf{z}^{[\ell]} &= W^{[\ell]} \mathbf{a}^{[\ell-1]} + \mathbf{b}^{[\ell]} \quad \text{(linear transformation)} \\
+    \mathbf{a}^{[\ell]} &= \sigma_\ell(\mathbf{z}^{[\ell]}) \quad \text{(activation)}
+\end{align}
+where $\mathbf{a}^{[0]} = \mathbf{x}$ (the input).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    neuron/.style={circle, draw, minimum size=0.8cm, inner sep=0pt},
+    layer/.style={rectangle, draw, dashed, inner sep=0.3cm}
+]
+    % Input layer
+    \node[neuron, fill=blue!20] (x1) at (0,2) {$x_1$};
+    \node[neuron, fill=blue!20] (x2) at (0,0) {$x_2$};
+    \node[neuron, fill=blue!20] (x3) at (0,-2) {$x_3$};
+
+    % Hidden layer
+    \node[neuron, fill=orange!30] (h1) at (3,1.5) {$a_1^{[1]}$};
+    \node[neuron, fill=orange!30] (h2) at (3,0) {$a_2^{[1]}$};
+    \node[neuron, fill=orange!30] (h3) at (3,-1.5) {$a_3^{[1]}$};
+
+    % Output layer
+    \node[neuron, fill=green!30] (o1) at (6,0.75) {$a_1^{[2]}$};
+    \node[neuron, fill=green!30] (o2) at (6,-0.75) {$a_2^{[2]}$};
+
+    % Connections input -> hidden
+    \foreach \i in {1,2,3}
+        \foreach \j in {1,2,3}
+            \draw[->, gray!60] (x\i) -- (h\j);
+
+    % Connections hidden -> output
+    \foreach \i in {1,2,3}
+        \foreach \j in {1,2}
+            \draw[->, gray!60] (h\i) -- (o\j);
+
+    % Labels
+    \node[above=0.3cm] at (0,2.5) {\footnotesize Input Layer};
+    \node[above=0.3cm] at (3,2.0) {\footnotesize Hidden Layer};
+    \node[above=0.3cm] at (6,1.3) {\footnotesize Output Layer};
+\end{tikzpicture}
+\caption{A feedforward neural network with one hidden layer.}
+\end{figure}
+
+\section{The Learning Problem}
+
+\textbf{Goal}: Find parameters $\theta = \{W^{[\ell]}, \mathbf{b}^{[\ell]}\}_{\ell=1}^{L}$ that minimize a loss function:
+\begin{equation}
+    \theta^* = \arg\min_\theta \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}(\hat{\mathbf{y}}_i, \mathbf{y}_i)
+\end{equation}
+where $N$ is the number of training samples, $\hat{\mathbf{y}}_i = f(\mathbf{x}_i; \theta)$ is the prediction, and $\mathbf{y}_i$ is the ground truth label.
+
+
+% ============================================================
+% CHAPTER 2: FORWARD PROPAGATION
+% ============================================================
+\chapter{Forward Propagation}
+
+\section{The Dense (Fully-Connected) Layer}
+
+\begin{definition}[Dense Layer]
+Given an input matrix $X \in \mathbb{R}^{N \times d_\text{in}}$ (a batch of $N$ samples with $d_\text{in}$ features), a Dense layer computes:
+\begin{equation}
+    Z = X W + \mathbf{b}
+\end{equation}
+where $W \in \mathbb{R}^{d_\text{in} \times d_\text{out}}$ is the weight matrix and $\mathbf{b} \in \mathbb{R}^{d_\text{out}}$ is the bias vector (broadcast across all $N$ samples).
+\end{definition}
+
+\begin{numexample}
+Let $d_\text{in} = 3$, $d_\text{out} = 2$, and batch size $N = 1$. Consider:
+\[
+\mathbf{x} = \begin{bmatrix} 1.0 & 2.0 & 3.0 \end{bmatrix}, \quad
+W = \begin{bmatrix} 0.1 & 0.4 \\ 0.2 & 0.5 \\ 0.3 & 0.6 \end{bmatrix}, \quad
+\mathbf{b} = \begin{bmatrix} 0.1 & 0.2 \end{bmatrix}
+\]
+
+\textbf{Step 1}: Compute $\mathbf{z} = \mathbf{x} W + \mathbf{b}$:
+\begin{align*}
+z_1 &= (1.0)(0.1) + (2.0)(0.2) + (3.0)(0.3) + 0.1 = 0.1 + 0.4 + 0.9 + 0.1 = \boxed{1.5} \\
+z_2 &= (1.0)(0.4) + (2.0)(0.5) + (3.0)(0.6) + 0.2 = 0.4 + 1.0 + 1.8 + 0.2 = \boxed{3.4}
+\end{align*}
+
+So $\mathbf{z} = \begin{bmatrix} 1.5 & 3.4 \end{bmatrix}$.
+\end{numexample}
+
+\begin{numexample}[Batch Processing with $N=2$ Samples]
+Now consider a batch of $N=2$ samples with $d_\text{in} = 2$ features and $d_\text{out} = 3$ output units:
+\[
+X = \begin{bmatrix} 1.0 & 0.5 \\ -0.5 & 2.0 \end{bmatrix}, \quad
+W = \begin{bmatrix} 0.2 & -0.1 & 0.4 \\ 0.5 & 0.3 & -0.2 \end{bmatrix}, \quad
+\mathbf{b} = \begin{bmatrix} 0.1 & 0.0 & -0.1 \end{bmatrix}
+\]
+
+\textbf{Step 1: Compute matrix multiplication $X W$}:
+\[
+X W = \begin{bmatrix} 
+(1.0)(0.2) + (0.5)(0.5) & (1.0)(-0.1) + (0.5)(0.3) & (1.0)(0.4) + (0.5)(-0.2) \\
+(-0.5)(0.2) + (2.0)(0.5) & (-0.5)(-0.1) + (2.0)(0.3) & (-0.5)(0.4) + (2.0)(-0.2)
+\end{bmatrix}
+\]
+\[
+X W = \begin{bmatrix} 
+0.2 + 0.25 & -0.1 + 0.15 & 0.4 - 0.1 \\
+-0.1 + 1.0 & 0.05 + 0.6 & -0.2 - 0.4
+\end{bmatrix} = \begin{bmatrix} 0.45 & 0.05 & 0.30 \\ 0.90 & 0.65 & -0.60 \end{bmatrix}
+\]
+
+\textbf{Step 2: Add bias vector $\mathbf{b}$ (broadcast across rows)}:
+\[
+Z = X W + \mathbf{b} = \begin{bmatrix} 0.45+0.1 & 0.05+0.0 & 0.30-0.1 \\ 0.90+0.1 & 0.65+0.0 & -0.60-0.1 \end{bmatrix} = \boxed{\begin{bmatrix} 0.55 & 0.05 & 0.20 \\ 1.00 & 0.65 & -0.70 \end{bmatrix}}
+\]
+\end{numexample}
+
+\section{Weight Initialization}
+
+Proper initialization prevents vanishing or exploding gradients in deep networks.
+
+\begin{definition}[He Initialization]
+For layers with ReLU activation:
+\begin{equation}
+    W_{ij} \sim \mathcal{N}\left(0,\; \sqrt{\frac{2}{d_\text{in}}}\right)
+\end{equation}
+\end{definition}
+
+\begin{definition}[Xavier (Glorot) Initialization]
+For layers with symmetric activations (Sigmoid, Tanh):
+\begin{equation}
+    W_{ij} \sim \mathcal{U}\left(-\sqrt{\frac{6}{d_\text{in} + d_\text{out}}},\; \sqrt{\frac{6}{d_\text{in} + d_\text{out}}}\right)
+\end{equation}
+\end{definition}
+
+\begin{numexample}[Weight Initialization Bounds]
+Suppose a layer maps $d_\text{in} = 784$ features to $d_\text{out} = 128$ neurons:
+\begin{enumerate}
+    \item \textbf{He Initialization (for ReLU)}:
+    \[
+    \sigma = \sqrt{\frac{2}{784}} = \sqrt{0.002551} \approx \boxed{0.0505}
+    \]
+    Weights are sampled from Gaussian distribution $\mathcal{N}(0, 0.0505^2)$.
+    
+    \item \textbf{Xavier Initialization (for Sigmoid/Tanh)}:
+    \[
+    \text{limit} = \sqrt{\frac{6}{784 + 128}} = \sqrt{\frac{6}{912}} = \sqrt{0.006579} \approx \boxed{0.0811}
+    \]
+    Weights are sampled uniformly from interval $\mathcal{U}(-0.0811, 0.0811)$.
+\end{enumerate}
+\end{numexample}
+
+
+% ============================================================
+% CHAPTER 3: ACTIVATION FUNCTIONS
+% ============================================================
+\chapter{Activation Functions}
+
+Activation functions introduce non-linearity into the network. Without them, any composition of linear layers is still linear and the network cannot learn complex patterns.
+
+\section{ReLU (Rectified Linear Unit)}
+
+\begin{definition}[ReLU]
+\begin{equation}
+    \text{ReLU}(z) = \max(0, z) = \begin{cases} z & \text{if } z > 0 \\ 0 & \text{if } z \leq 0 \end{cases}
+\end{equation}
+
+Its derivative is:
+\begin{equation}
+    \frac{d}{dz}\text{ReLU}(z) = \begin{cases} 1 & \text{if } z > 0 \\ 0 & \text{if } z \leq 0 \end{cases}
+\end{equation}
+\end{definition}
+
+\begin{numexample}
+Given $\mathbf{z} = \begin{bmatrix} 1.5 & -0.8 & 3.4 & -2.1 \end{bmatrix}$:
+\[
+\text{ReLU}(\mathbf{z}) = \begin{bmatrix} 1.5 & 0 & 3.4 & 0 \end{bmatrix}
+\]
+The derivative:
+\[
+\text{ReLU}'(\mathbf{z}) = \begin{bmatrix} 1 & 0 & 1 & 0 \end{bmatrix}
+\]
+\end{numexample}
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=8cm, height=5cm,
+    xlabel={$z$}, ylabel={$\text{ReLU}(z)$},
+    grid=major, axis lines=middle,
+    xmin=-4, xmax=4, ymin=-1, ymax=4,
+    title={ReLU Activation}
+]
+\addplot[blue, thick, domain=-4:0] {0};
+\addplot[blue, thick, domain=0:4] {x};
+\end{axis}
+\end{tikzpicture}
+
+\section{Sigmoid}
+
+\begin{definition}[Sigmoid]
+\begin{equation}
+    \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+
+Its derivative has an elegant form:
+\begin{equation}
+    \sigma'(z) = \sigma(z) \cdot (1 - \sigma(z))
+\end{equation}
+\end{definition}
+
+\begin{proof}
+Let $\sigma(z) = (1+e^{-z})^{-1}$. By the chain rule:
+\begin{align*}
+    \sigma'(z) &= -1 \cdot (1+e^{-z})^{-2} \cdot (-e^{-z}) \\
+    &= \frac{e^{-z}}{(1+e^{-z})^2} \\
+    &= \frac{1}{1+e^{-z}} \cdot \frac{e^{-z}}{1+e^{-z}} \\
+    &= \sigma(z) \cdot \frac{(1+e^{-z}) - 1}{1+e^{-z}} \\
+    &= \sigma(z) \cdot \bigl(1 - \sigma(z)\bigr) \qedhere
+\end{align*}
+\end{proof}
+
+\begin{numexample}
+For $z = 1.0$:
+\begin{align*}
+    \sigma(1.0) &= \frac{1}{1 + e^{-1.0}} = \frac{1}{1 + 0.3679} = \frac{1}{1.3679} = \boxed{0.7311} \\[6pt]
+    \sigma'(1.0) &= 0.7311 \times (1 - 0.7311) = 0.7311 \times 0.2689 = \boxed{0.1966}
+\end{align*}
+\end{numexample}
+
+\section{Tanh (Hyperbolic Tangent)}
+
+\begin{definition}[Tanh]
+\begin{equation}
+    \tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}
+\end{equation}
+
+Its derivative:
+\begin{equation}
+    \tanh'(z) = 1 - \tanh^2(z)
+\end{equation}
+\end{definition}
+
+\begin{proof}
+Using the quotient rule with $u = e^z - e^{-z}$ and $v = e^z + e^{-z}$:
+\begin{align*}
+    \tanh'(z) &= \frac{u'v - uv'}{v^2} = \frac{(e^z+e^{-z})(e^z+e^{-z}) - (e^z-e^{-z})(e^z-e^{-z})}{(e^z+e^{-z})^2} \\
+    &= \frac{(e^z+e^{-z})^2 - (e^z-e^{-z})^2}{(e^z+e^{-z})^2} \\
+    &= 1 - \left(\frac{e^z - e^{-z}}{e^z + e^{-z}}\right)^2 = 1 - \tanh^2(z) \qedhere
+\end{align*}
+\end{proof}
+
+\begin{numexample}
+For $z = 0.5$:
+\begin{align*}
+    \tanh(0.5) &= \frac{e^{0.5} - e^{-0.5}}{e^{0.5} + e^{-0.5}} = \frac{1.6487 - 0.6065}{1.6487 + 0.6065} = \frac{1.0422}{2.2553} = \boxed{0.4621} \\[6pt]
+    \tanh'(0.5) &= 1 - (0.4621)^2 = 1 - 0.2135 = \boxed{0.7864}
+\end{align*}
+\end{numexample}
+
+\section{Softmax}
+
+\begin{definition}[Softmax]
+For a vector $\mathbf{z} \in \mathbb{R}^K$, the Softmax function outputs a probability distribution:
+\begin{equation}
+    \text{Softmax}(\mathbf{z})_i = \frac{e^{z_i}}{\sum_{j=1}^{K} e^{z_j}}, \quad i = 1, \ldots, K
+\end{equation}
+
+Properties: $\text{Softmax}(\mathbf{z})_i \in (0, 1)$ and $\sum_i \text{Softmax}(\mathbf{z})_i = 1$.
+\end{definition}
+
+The Jacobian matrix of Softmax is:
+\begin{equation}
+    \frac{\partial \text{Softmax}(\mathbf{z})_i}{\partial z_j} = \begin{cases}
+        s_i(1 - s_i) & \text{if } i = j \\
+        -s_i \cdot s_j & \text{if } i \neq j
+    \end{cases}
+\end{equation}
+where $s_i = \text{Softmax}(\mathbf{z})_i$. In matrix form:
+\begin{equation}
+    J = \text{diag}(\mathbf{s}) - \mathbf{s}\mathbf{s}^\top
+\end{equation}
+
+\begin{numexample}
+For $\mathbf{z} = \begin{bmatrix} 2.0 & 1.0 & 0.1 \end{bmatrix}$:
+\begin{align*}
+    e^{z_1} &= e^{2.0} = 7.389, \quad e^{z_2} = e^{1.0} = 2.718, \quad e^{z_3} = e^{0.1} = 1.105 \\
+    \sum &= 7.389 + 2.718 + 1.105 = 11.212
+\end{align*}
+\[
+\text{Softmax}(\mathbf{z}) = \begin{bmatrix} \frac{7.389}{11.212} & \frac{2.718}{11.212} & \frac{1.105}{11.212} \end{bmatrix} = \boxed{\begin{bmatrix} 0.659 & 0.242 & 0.099 \end{bmatrix}}
+\]
+Notice: $0.659 + 0.242 + 0.099 = 1.0$ \checkmark
+\end{numexample}
+
+\begin{keyidea}
+In practice, we subtract $\max(\mathbf{z})$ before computing Softmax for numerical stability:
+\[
+\text{Softmax}(\mathbf{z})_i = \frac{e^{z_i - \max(\mathbf{z})}}{\sum_j e^{z_j - \max(\mathbf{z})}}
+\]
+This prevents overflow when $z_i$ is very large.
+\end{keyidea}
+
+
+% ============================================================
+% CHAPTER 4: LOSS FUNCTIONS
+% ============================================================
+\chapter{Loss Functions}
+
+\section{Categorical Cross-Entropy}
+
+\begin{definition}[Categorical Cross-Entropy]
+For a single sample with predicted probability vector $\hat{\mathbf{y}} \in \mathbb{R}^K$ and true one-hot label $\mathbf{y} \in \{0,1\}^K$:
+\begin{equation}
+    \mathcal{L}(\hat{\mathbf{y}}, \mathbf{y}) = -\sum_{i=1}^{K} y_i \ln(\hat{y}_i)
+\end{equation}
+
+Since $\mathbf{y}$ is one-hot (only one $y_c = 1$, all others $0$), this simplifies to:
+\begin{equation}
+    \mathcal{L} = -\ln(\hat{y}_c)
+\end{equation}
+where $c$ is the index of the true class.
+\end{definition}
+
+\begin{numexample}
+Suppose the true class is $c = 0$ (the first class), and Softmax output is:
+\[
+\hat{\mathbf{y}} = \begin{bmatrix} 0.659 & 0.242 & 0.099 \end{bmatrix}
+\]
+One-hot label: $\mathbf{y} = \begin{bmatrix} 1 & 0 & 0 \end{bmatrix}$
+\[
+\mathcal{L} = -\ln(0.659) = \boxed{0.417}
+\]
+If the model were more confident ($\hat{y}_0 = 0.95$): $\mathcal{L} = -\ln(0.95) = 0.051$ (lower loss).\\
+If the model were wrong ($\hat{y}_0 = 0.01$): $\mathcal{L} = -\ln(0.01) = 4.605$ (high loss).
+\end{numexample}
+
+\section{Combined Softmax + Cross-Entropy Gradient}
+
+\begin{theorem}[Gradient of Cross-Entropy w.r.t.\ Softmax Input]
+When using Softmax activation with Categorical Cross-Entropy loss, the gradient of the loss with respect to the pre-activation logits $\mathbf{z}$ is remarkably simple:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial z_i} = \hat{y}_i - y_i
+\end{equation}
+where $\hat{y}_i = \text{Softmax}(\mathbf{z})_i$.
+\end{theorem}
+
+\begin{proof}
+We need $\frac{\partial \mathcal{L}}{\partial z_i}$. By chain rule:
+\[
+\frac{\partial \mathcal{L}}{\partial z_i} = \sum_{j=1}^{K} \frac{\partial \mathcal{L}}{\partial \hat{y}_j} \cdot \frac{\partial \hat{y}_j}{\partial z_i}
+\]
+
+The cross-entropy gradient w.r.t.\ $\hat{y}_j$ is:
+\[
+\frac{\partial \mathcal{L}}{\partial \hat{y}_j} = -\frac{y_j}{\hat{y}_j}
+\]
+
+The Softmax Jacobian gives:
+\[
+\frac{\partial \hat{y}_j}{\partial z_i} = \hat{y}_j(\delta_{ij} - \hat{y}_i)
+\]
+where $\delta_{ij}$ is the Kronecker delta.
+
+Combining:
+\begin{align*}
+\frac{\partial \mathcal{L}}{\partial z_i} &= -\sum_{j} \frac{y_j}{\hat{y}_j} \cdot \hat{y}_j(\delta_{ij} - \hat{y}_i) \\
+&= -\sum_{j} y_j (\delta_{ij} - \hat{y}_i) \\
+&= -y_i + \hat{y}_i \sum_{j} y_j \\
+&= -y_i + \hat{y}_i \cdot 1 \quad (\text{since } \sum_j y_j = 1) \\
+&= \hat{y}_i - y_i \qedhere
+\end{align*}
+\end{proof}
+
+\begin{numexample}
+Continuing with $\hat{\mathbf{y}} = \begin{bmatrix} 0.659 & 0.242 & 0.099 \end{bmatrix}$ and $\mathbf{y} = \begin{bmatrix} 1 & 0 & 0 \end{bmatrix}$:
+\[
+\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \hat{\mathbf{y}} - \mathbf{y} = \begin{bmatrix} 0.659 - 1 \\ 0.242 - 0 \\ 0.099 - 0 \end{bmatrix} = \boxed{\begin{bmatrix} -0.341 \\ 0.242 \\ 0.099 \end{bmatrix}}
+\]
+Notice: the gradient for the correct class is negative (pushing it toward 1), while gradients for wrong classes are positive (pushing them toward 0).
+\end{numexample}
+
+
+% ============================================================
+% CHAPTER 5: BACKPROPAGATION
+% ============================================================
+\chapter{Backpropagation}
+
+\section{The Chain Rule}
+
+Backpropagation is simply the \textbf{chain rule of calculus} applied systematically from the output layer back to the input layer.
+
+\begin{theorem}[Multivariate Chain Rule]
+If $\mathcal{L}$ depends on $\mathbf{z}$ through an intermediate variable $\mathbf{a} = \sigma(\mathbf{z})$, then:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial z_i} = \sum_j \frac{\partial \mathcal{L}}{\partial a_j} \cdot \frac{\partial a_j}{\partial z_i}
+\end{equation}
+\end{theorem}
+
+\section{Backpropagation Through a Dense Layer}
+
+Consider a Dense layer: $\mathbf{z} = X W + \mathbf{b}$.
+
+Given the upstream gradient $\frac{\partial \mathcal{L}}{\partial \mathbf{z}} \in \mathbb{R}^{N \times d_\text{out}}$ (which we call \texttt{dvalues}), we need to compute:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Gradient w.r.t.\ weights} $\frac{\partial \mathcal{L}}{\partial W}$:
+    \begin{equation}
+        \frac{\partial \mathcal{L}}{\partial W} = X^\top \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{z}}
+    \end{equation}
+    
+    \item \textbf{Gradient w.r.t.\ biases} $\frac{\partial \mathcal{L}}{\partial \mathbf{b}}$:
+    \begin{equation}
+        \frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \sum_{n=1}^{N} \frac{\partial \mathcal{L}}{\partial z_n} \quad \text{(sum over batch dimension)}
+    \end{equation}
+    
+    \item \textbf{Gradient w.r.t.\ inputs} $\frac{\partial \mathcal{L}}{\partial X}$ (to pass to previous layer):
+    \begin{equation}
+        \frac{\partial \mathcal{L}}{\partial X} = \frac{\partial \mathcal{L}}{\partial \mathbf{z}} \cdot W^\top
+    \end{equation}
+\end{enumerate}
+
+\begin{proof}[Rigorously Detailed Proof of Dense Layer Matrix Derivatives]
+Let $X \in \mathbb{R}^{N \times d_\text{in}}$, $W \in \mathbb{R}^{d_\text{in} \times d_\text{out}}$, $\mathbf{b} \in \mathbb{R}^{d_\text{out}}$, and $Z = X W + \mathbf{b} \in \mathbb{R}^{N \times d_\text{out}}$.
+
+The element-wise equation for entry $(i, j)$ in matrix $Z$ is:
+\begin{equation}
+    Z_{ij} = \sum_{k=1}^{d_\text{in}} X_{ik} W_{kj} + b_j
+\end{equation}
+
+\textbf{1. Weight Gradient Matrix Proof} ($\frac{\partial \mathcal{L}}{\partial W}$):
+By the multivariate chain rule, the gradient of scalar loss $\mathcal{L}$ with respect to weight entry $W_{kj}$ is:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial W_{kj}} = \sum_{i=1}^{N} \sum_{l=1}^{d_\text{out}} \frac{\partial \mathcal{L}}{\partial Z_{il}} \frac{\partial Z_{il}}{\partial W_{kj}}
+\end{equation}
+Notice that $\frac{\partial Z_{il}}{\partial W_{kj}} \neq 0$ ONLY when $l = j$. Specifically:
+\begin{equation}
+    \frac{\partial Z_{ij}}{\partial W_{kj}} = X_{ik}
+\end{equation}
+Substituting this back into the sum simplifies it to:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial W_{kj}} = \sum_{i=1}^{N} \frac{\partial \mathcal{L}}{\partial Z_{ij}} X_{ik} = \sum_{i=1}^{N} X_{ik} \frac{\partial \mathcal{L}}{\partial Z_{ij}} = \sum_{i=1}^{N} (X^\top)_{ki} \left(\frac{\partial \mathcal{L}}{\partial Z}\right)_{ij}
+\end{equation}
+By the definition of matrix multiplication, entry $(k, j)$ of $(X^\top \cdot \frac{\partial \mathcal{L}}{\partial Z})$ is precisely $\sum_{i=1}^N (X^\top)_{ki} (\frac{\partial \mathcal{L}}{\partial Z})_{ij}$. Thus:
+\begin{equation}
+    \boxed{\frac{\partial \mathcal{L}}{\partial W} = X^\top \cdot \frac{\partial \mathcal{L}}{\partial Z}}
+\end{equation}
+
+\textbf{2. Input Gradient Matrix Proof} ($\frac{\partial \mathcal{L}}{\partial X}$):
+Similarly, for input entry $X_{ik}$:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial X_{ik}} = \sum_{j=1}^{d_\text{out}} \frac{\partial \mathcal{L}}{\partial Z_{ij}} \frac{\partial Z_{ij}}{\partial X_{ik}}
+\end{equation}
+Since $\frac{\partial Z_{ij}}{\partial X_{ik}} = W_{kj}$:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial X_{ik}} = \sum_{j=1}^{d_\text{out}} \frac{\partial \mathcal{L}}{\partial Z_{ij}} W_{kj} = \sum_{j=1}^{d_\text{out}} \left(\frac{\partial \mathcal{L}}{\partial Z}\right)_{ij} (W^\top)_{jk}
+\end{equation}
+This matches entry $(i, k)$ of $(\frac{\partial \mathcal{L}}{\partial Z} \cdot W^\top)$. Therefore:
+\begin{equation}
+    \boxed{\frac{\partial \mathcal{L}}{\partial X} = \frac{\partial \mathcal{L}}{\partial Z} \cdot W^\top}
+\end{equation}
+
+\textbf{3. Bias Gradient Vector Proof} ($\frac{\partial \mathcal{L}}{\partial \mathbf{b}}$):
+Since $\frac{\partial Z_{ij}}{\partial b_j} = 1$:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial b_j} = \sum_{i=1}^{N} \frac{\partial \mathcal{L}}{\partial Z_{ij}} \cdot 1 \implies \boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \sum_{i=1}^{N} \frac{\partial \mathcal{L}}{\partial Z_{i,:}}} \qedhere
+\end{equation}
+\end{proof}
+
+\section{Complete Backpropagation Example}
+
+Let us trace forward and backward through a \textbf{complete 2-layer network} with concrete numbers.
+
+\subsection{Network Setup}
+
+\begin{itemize}
+    \item Input: $\mathbf{x} = \begin{bmatrix} 0.5 & 0.3 \end{bmatrix}$ (2 features)
+    \item Hidden layer: 2 neurons with ReLU
+    \item Output layer: 2 neurons with Softmax
+    \item True label: class 0, so $\mathbf{y} = \begin{bmatrix} 1 & 0 \end{bmatrix}$
+\end{itemize}
+
+Parameters:
+\begin{align*}
+W^{[1]} &= \begin{bmatrix} 0.15 & 0.25 \\ 0.20 & 0.30 \end{bmatrix}, \quad
+\mathbf{b}^{[1]} = \begin{bmatrix} 0.35 & 0.35 \end{bmatrix} \\
+W^{[2]} &= \begin{bmatrix} 0.40 & 0.50 \\ 0.45 & 0.55 \end{bmatrix}, \quad
+\mathbf{b}^{[2]} = \begin{bmatrix} 0.60 & 0.60 \end{bmatrix}
+\end{align*}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=2.8cm and 3.5cm,
+    input_node/.style={circle, draw=blue!80, fill=blue!10, thick, minimum size=1.1cm, align=center},
+    hidden_node/.style={circle, draw=orange!80, fill=orange!10, thick, minimum size=1.3cm, align=center},
+    output_node/.style={circle, draw=green!80, fill=green!10, thick, minimum size=1.3cm, align=center},
+    forward_arr/.style={->, >=stealth, thick, blue!70!black},
+    backward_arr/.style={<-, >=stealth, dashed, thick, red!70!black}
+]
+
+    % Nodes - Input Layer
+    \node[input_node] (x1) at (0, 1.8) {$x_1$\\ \tiny $0.5$};
+    \node[input_node] (x2) at (0, -1.8) {$x_2$\\ \tiny $0.3$};
+
+    % Nodes - Hidden Layer (ReLU)
+    \node[hidden_node] (h1) at (4, 1.8) {$a_1^{[1]}$\\ \tiny $0.485$};
+    \node[hidden_node] (h2) at (4, -1.8) {$a_2^{[1]}$\\ \tiny $0.565$};
+
+    % Nodes - Output Layer (Softmax)
+    \node[output_node] (o1) at (8, 1.8) {$\hat{y}_1$\\ \tiny $0.474$};
+    \node[output_node] (o2) at (8, -1.8) {$\hat{y}_2$\\ \tiny $0.526$};
+
+    % Forward Connections Layer 1
+    \draw[forward_arr] (x1) -- node[above, sloped, font=\tiny] {$w_{11}^{[1]}=0.15$} (h1);
+    \draw[forward_arr] (x1) -- node[near start, above, sloped, font=\tiny] {$w_{12}^{[1]}=0.25$} (h2);
+    \draw[forward_arr] (x2) -- node[near start, below, sloped, font=\tiny] {$w_{21}^{[1]}=0.20$} (h1);
+    \draw[forward_arr] (x2) -- node[below, sloped, font=\tiny] {$w_{22}^{[1]}=0.30$} (h2);
+
+    % Forward Connections Layer 2
+    \draw[forward_arr] (h1) -- node[above, sloped, font=\tiny] {$w_{11}^{[2]}=0.40$} (o1);
+    \draw[forward_arr] (h1) -- node[near start, above, sloped, font=\tiny] {$w_{12}^{[2]}=0.50$} (o2);
+    \draw[forward_arr] (h2) -- node[near start, below, sloped, font=\tiny] {$w_{21}^{[2]}=0.45$} (o1);
+    \draw[forward_arr] (h2) -- node[below, sloped, font=\tiny] {$w_{22}^{[2]}=0.55$} (o2);
+
+    % Backward Gradient Flow Indicators (Dashed Red Lines)
+    \draw[backward_arr] ($(h1)+(0,0.8)$) -- node[above, font=\tiny, color=red!80!black] {$\frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[1]}} = 0.053$} ($(o1)+(0,0.8)$);
+    \draw[backward_arr] ($(x1)+(0,0.8)$) -- node[above, font=\tiny, color=red!80!black] {$\frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[1]}} = 0.053$} ($(h1)+(0,0.8)$);
+
+    % Biases
+    \node[above=0.1cm of h1, font=\tiny, color=orange!90!black] {$b_1^{[1]}=0.35$};
+    \node[below=0.1cm of h2, font=\tiny, color=orange!90!black] {$b_2^{[1]}=0.35$};
+    \node[above=0.1cm of o1, font=\tiny, color=green!90!black] {$b_1^{[2]}=0.60$};
+    \node[below=0.1cm of o2, font=\tiny, color=green!90!black] {$b_2^{[2]}=0.60$};
+
+    % Layer Headers
+    \node[above=1.2cm of x1, font=\bfseries\small] {Input Layer};
+    \node[above=1.2cm of h1, font=\bfseries\small] {Hidden Layer (ReLU)};
+    \node[above=1.2cm of o1, font=\bfseries\small] {Output Layer (Softmax)};
+
+\end{tikzpicture}
+\caption{Neural network diagram for the 2-layer backpropagation example. Blue arrows indicate forward propagation values; red dashed arrows indicate the backward flow of loss gradients.}
+\label{fig:backprop_nn_diagram}
+\end{figure}
+
+\subsection{Forward Pass}
+
+\textbf{Layer 1 (Dense + ReLU):}
+\begin{align*}
+z_1^{[1]} &= (0.5)(0.15) + (0.3)(0.20) + 0.35 = 0.075 + 0.060 + 0.35 = 0.485 \\
+z_2^{[1]} &= (0.5)(0.25) + (0.3)(0.30) + 0.35 = 0.125 + 0.090 + 0.35 = 0.565
+\end{align*}
+\[
+\mathbf{z}^{[1]} = \begin{bmatrix} 0.485 & 0.565 \end{bmatrix}
+\]
+
+Apply ReLU (both values are positive, so unchanged):
+\[
+\mathbf{a}^{[1]} = \text{ReLU}(\mathbf{z}^{[1]}) = \begin{bmatrix} 0.485 & 0.565 \end{bmatrix}
+\]
+
+\textbf{Layer 2 (Dense + Softmax):}
+\begin{align*}
+z_1^{[2]} &= (0.485)(0.40) + (0.565)(0.45) + 0.60 = 0.194 + 0.254 + 0.60 = 1.048 \\
+z_2^{[2]} &= (0.485)(0.50) + (0.565)(0.55) + 0.60 = 0.2425 + 0.3108 + 0.60 = 1.153
+\end{align*}
+\[
+\mathbf{z}^{[2]} = \begin{bmatrix} 1.048 & 1.153 \end{bmatrix}
+\]
+
+Apply Softmax:
+\begin{align*}
+e^{1.048} &= 2.852, \quad e^{1.153} = 3.168 \\
+\sum &= 2.852 + 3.168 = 6.020
+\end{align*}
+\[
+\hat{\mathbf{y}} = \mathbf{a}^{[2]} = \begin{bmatrix} \frac{2.852}{6.020} & \frac{3.168}{6.020} \end{bmatrix} = \begin{bmatrix} 0.474 & 0.526 \end{bmatrix}
+\]
+
+\textbf{Loss:}
+\[
+\mathcal{L} = -\ln(\hat{y}_0) = -\ln(0.474) = \boxed{0.747}
+\]
+
+\subsection{Backward Pass}
+
+\textbf{Step 1: Gradient at Softmax + Cross-Entropy output} (using the combined formula):
+\[
+\frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[2]}} = \hat{\mathbf{y}} - \mathbf{y} = \begin{bmatrix} 0.474 - 1 & 0.526 - 0 \end{bmatrix} = \begin{bmatrix} -0.526 & 0.526 \end{bmatrix}
+\]
+
+\textbf{Step 2: Backprop through Dense Layer 2:}
+
+Weight gradients:
+\[
+\frac{\partial \mathcal{L}}{\partial W^{[2]}} = (\mathbf{a}^{[1]})^\top \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[2]}} = \begin{bmatrix} 0.485 \\ 0.565 \end{bmatrix} \begin{bmatrix} -0.526 & 0.526 \end{bmatrix} = \begin{bmatrix} -0.255 & 0.255 \\ -0.297 & 0.297 \end{bmatrix}
+\]
+
+Bias gradients:
+\[
+\frac{\partial \mathcal{L}}{\partial \mathbf{b}^{[2]}} = \begin{bmatrix} -0.526 & 0.526 \end{bmatrix}
+\]
+
+Input gradients (to pass to Layer 1):
+\[
+\frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[1]}} = \frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[2]}} \cdot (W^{[2]})^\top = \begin{bmatrix} -0.526 & 0.526 \end{bmatrix} \begin{bmatrix} 0.40 & 0.45 \\ 0.50 & 0.55 \end{bmatrix} = \begin{bmatrix} 0.053 & 0.053 \end{bmatrix}
+\]
+Computing element by element:
+\begin{align*}
+    \delta_1 &= (-0.526)(0.40) + (0.526)(0.50) = -0.210 + 0.263 = 0.053 \\
+    \delta_2 &= (-0.526)(0.45) + (0.526)(0.55) = -0.237 + 0.289 = 0.053
+\end{align*}
+
+\textbf{Step 3: Backprop through ReLU:}
+
+Since both $z_1^{[1]} = 0.485 > 0$ and $z_2^{[1]} = 0.565 > 0$:
+\[
+\frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[1]}} = \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[1]}} \odot \text{ReLU}'(\mathbf{z}^{[1]}) = \begin{bmatrix} 0.053 & 0.053 \end{bmatrix} \odot \begin{bmatrix} 1 & 1 \end{bmatrix} = \begin{bmatrix} 0.053 & 0.053 \end{bmatrix}
+\]
+
+\textbf{Step 4: Backprop through Dense Layer 1:}
+
+Weight gradients:
+\[
+\frac{\partial \mathcal{L}}{\partial W^{[1]}} = \mathbf{x}^\top \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{z}^{[1]}} = \begin{bmatrix} 0.5 \\ 0.3 \end{bmatrix} \begin{bmatrix} 0.053 & 0.053 \end{bmatrix} = \begin{bmatrix} 0.026 & 0.026 \\ 0.016 & 0.016 \end{bmatrix}
+\]
+
+Bias gradients:
+\[
+\frac{\partial \mathcal{L}}{\partial \mathbf{b}^{[1]}} = \begin{bmatrix} 0.053 & 0.053 \end{bmatrix}
+\]
+
+\section{Binary Classification Backpropagation (Sigmoid + BCE)}
+
+For binary classification tasks, the output layer uses a single neuron with Sigmoid activation $\hat{y} = \sigma(z) = \frac{1}{1+e^{-z}}$ and Binary Cross-Entropy (BCE) loss:
+\begin{equation}
+    \mathcal{L}(y, \hat{y}) = - \bigl[ y \ln(\hat{y}) + (1 - y) \ln(1 - \hat{y}) \bigr]
+\end{equation}
+
+\begin{theorem}[Gradient of BCE w.r.t.\ Pre-Activation Logit $z$]
+The derivative of Binary Cross-Entropy loss with respect to logit $z$ is:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial z} = \hat{y} - y
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Applying the chain rule:
+\[
+\frac{\partial \mathcal{L}}{\partial z} = \frac{\partial \mathcal{L}}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z}
+\]
+1. Derivative of loss w.r.t.\ prediction $\hat{y}$:
+\[
+\frac{\partial \mathcal{L}}{\partial \hat{y}} = -\frac{y}{\hat{y}} + \frac{1 - y}{1 - \hat{y}} = \frac{-\hat{y}y(1-\hat{y}) + (1-y)\hat{y}}{\hat{y}(1-\hat{y})} = \frac{\hat{y} - y}{\hat{y}(1-\hat{y})}
+\]
+2. Derivative of Sigmoid w.r.t.\ logit $z$:
+\[
+\frac{\partial \hat{y}}{\partial z} = \sigma'(z) = \hat{y}(1 - \hat{y})
+\]
+3. Combining them via chain rule:
+\[
+\frac{\partial \mathcal{L}}{\partial z} = \frac{\hat{y} - y}{\hat{y}(1-\hat{y})} \cdot \hat{y}(1 - \hat{y}) = \boxed{\hat{y} - y} \qedhere
+\]
+\end{proof}
+
+\begin{numexample}[Binary Classification Backpropagation]
+Consider a single-neuron model for binary classification:
+Input $\mathbf{x} = \begin{bmatrix} 1.0 & 2.0 \end{bmatrix}$, Weights $\mathbf{w} = \begin{bmatrix} 0.5 & -0.5 \end{bmatrix}$, Bias $b = 0.2$, True target $y = 1.0$.
+
+\textbf{Forward Pass}:
+\begin{align*}
+z &= w_1 x_1 + w_2 x_2 + b = (0.5)(1.0) + (-0.5)(2.0) + 0.2 = 0.5 - 1.0 + 0.2 = -0.3 \\
+\hat{y} &= \sigma(-0.3) = \frac{1}{1 + e^{0.3}} = \frac{1}{1 + 1.3499} = \boxed{0.4256}
+\end{align*}
+
+\textbf{Binary Cross-Entropy Loss}:
+\[
+\mathcal{L} = -\ln(\hat{y}) = -\ln(0.4256) = \boxed{0.8542}
+\]
+
+\textbf{Backward Pass}:
+\begin{align*}
+\frac{\partial \mathcal{L}}{\partial z} &= \hat{y} - y = 0.4256 - 1.0 = \boxed{-0.5744} \\[4pt]
+\frac{\partial \mathcal{L}}{\partial \mathbf{w}} &= \mathbf{x}^\top \cdot \frac{\partial \mathcal{L}}{\partial z} = \begin{bmatrix} 1.0 \\ 2.0 \end{bmatrix} (-0.5744) = \boxed{\begin{bmatrix} -0.5744 \\ -1.1488 \end{bmatrix}} \\[4pt]
+\frac{\partial \mathcal{L}}{\partial b} &= \frac{\partial \mathcal{L}}{\partial z} = \boxed{-0.5744}
+\end{align*}
+
+\textbf{Parameter Update ($\eta = 0.1$)}:
+\begin{align*}
+\mathbf{w}_\text{new} &= \begin{bmatrix} 0.5 & -0.5 \end{bmatrix} - 0.1 \cdot \begin{bmatrix} -0.5744 & -1.1488 \end{bmatrix} = \boxed{\begin{bmatrix} 0.5574 & -0.3851 \end{bmatrix}} \\
+b_\text{new} &= 0.2 - 0.1 \cdot (-0.5744) = \boxed{0.2574}
+\end{align*}
+\end{numexample}
+
+\section{Scalar Autograd Computational Graph Example}
+
+In `mini-keras/data.py` (inspired by Andrej Karpathy's `micrograd`), backpropagation operates on individual scalar `Data` objects. Let us trace a complete scalar computation graph:
+
+Consider inputs $x_1 = 2.0$, $x_2 = 0.0$, weights $w_1 = -3.0$, $w_2 = 1.0$, and bias $b = 6.88137$.
+
+\textbf{Step 1: Forward Graph Computation}:
+\begin{align*}
+    u_1 &= x_1 \cdot w_1 = (2.0)(-3.0) = -6.0 \\
+    u_2 &= x_2 \cdot w_2 = (0.0)(1.0) = 0.0 \\
+    u_3 &= u_1 + u_2 = -6.0 + 0.0 = -6.0 \\
+    y &= u_3 + b = -6.0 + 6.88137 = \boxed{0.88137}
+\end{align*}
+
+\textbf{Step 2: Backward Pass (Analytical Derivatives)}:
+Start at root node: $\frac{\partial y}{\partial y} = 1.0$.
+
+1. Addition node $y = u_3 + b$:
+   \[
+   \frac{\partial y}{\partial u_3} = 1.0 \cdot 1.0 = \boxed{1.0}, \quad \frac{\partial y}{\partial b} = 1.0 \cdot 1.0 = \boxed{1.0}
+   \]
+2. Addition node $u_3 = u_1 + u_2$:
+   \[
+   \frac{\partial y}{\partial u_1} = \frac{\partial y}{\partial u_3} \cdot 1 = \boxed{1.0}, \quad \frac{\partial y}{\partial u_2} = \frac{\partial y}{\partial u_3} \cdot 1 = \boxed{1.0}
+   \]
+3. Multiplication node $u_1 = x_1 \cdot w_1$:
+   \[
+   \frac{\partial y}{\partial x_1} = \frac{\partial y}{\partial u_1} \cdot w_1 = (1.0)(-3.0) = \boxed{-3.0}, \quad \frac{\partial y}{\partial w_1} = \frac{\partial y}{\partial u_1} \cdot x_1 = (1.0)(2.0) = \boxed{2.0}
+   \]
+4. Multiplication node $u_2 = x_2 \cdot w_2$:
+   \[
+   \frac{\partial y}{\partial x_2} = \frac{\partial y}{\partial u_2} \cdot w_2 = (1.0)(1.0) = \boxed{1.0}, \quad \frac{\partial y}{\partial w_2} = \frac{\partial y}{\partial u_2} \cdot x_2 = (1.0)(0.0) = \boxed{0.0}
+   \]
+
+\textbf{Summary Table of Scalar Autograd Gradients}:
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Variable} & \textbf{Forward Value} & \textbf{Analytical Gradient $\frac{\partial y}{\partial \text{var}}$} & \textbf{Meaning} \\
+\midrule
+$x_1$ & $2.0$ & $-3.0$ & Increasing $x_1$ by $1$ decreases $y$ by $3$ \\
+$w_1$ & $-3.0$ & $2.0$ & Increasing $w_1$ by $1$ increases $y$ by $2$ \\
+$x_2$ & $0.0$ & $1.0$ & Increasing $x_2$ by $1$ increases $y$ by $1$ \\
+$w_2$ & $1.0$ & $0.0$ & $x_2=0$ so $w_2$ has no effect on $y$ \\
+$b$ & $6.88137$ & $1.0$ & Increasing $b$ by $1$ increases $y$ by $1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keyidea}
+\textbf{Summary of backpropagation through each layer type:}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Layer} & \textbf{Forward} & \textbf{Backward (given $\frac{\partial \mathcal{L}}{\partial \text{output}}$)} \\
+\midrule
+Dense & $Z = XW + \mathbf{b}$ & $\frac{\partial \mathcal{L}}{\partial W} = X^\top \frac{\partial \mathcal{L}}{\partial Z}$, \; $\frac{\partial \mathcal{L}}{\partial X} = \frac{\partial \mathcal{L}}{\partial Z} W^\top$ \\
+ReLU & $A = \max(0, Z)$ & $\frac{\partial \mathcal{L}}{\partial Z} = \frac{\partial \mathcal{L}}{\partial A} \odot \mathbb{1}_{Z > 0}$ \\
+Softmax+CE & $\hat{y} = \text{Softmax}(Z)$ & $\frac{\partial \mathcal{L}}{\partial Z} = \hat{\mathbf{y}} - \mathbf{y}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{keyidea}
+
+
+% ============================================================
+% CHAPTER 6: OPTIMIZATION ALGORITHMS
+% ============================================================
+\chapter{Optimization Algorithms}
+
+After computing gradients via backpropagation, we need an algorithm to \textit{update} the parameters. All optimizers follow the general pattern:
+\begin{equation}
+    \theta \leftarrow \theta - \eta \cdot \Delta\theta
+\end{equation}
+where $\eta$ is the learning rate and $\Delta\theta$ is the update direction.
+
+\section{Stochastic Gradient Descent (SGD)}
+
+The simplest optimizer. Update rule:
+\begin{equation}
+    \theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta \mathcal{L}
+\end{equation}
+
+Expanded for weights and biases:
+\begin{align}
+    W &\leftarrow W - \eta \cdot \frac{\partial \mathcal{L}}{\partial W} \\
+    \mathbf{b} &\leftarrow \mathbf{b} - \eta \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{b}}
+\end{align}
+
+\begin{numexample}[Complete Parameter Updates with SGD]
+Using learning rate $\eta = 0.5$ and the gradients calculated from Chapter 5:
+
+\textbf{Layer 2 Updates}:
+\begin{align*}
+W^{[2]}_\text{new} &= \begin{bmatrix} 0.40 & 0.50 \\ 0.45 & 0.55 \end{bmatrix} - 0.5 \cdot \begin{bmatrix} -0.255 & 0.255 \\ -0.297 & 0.297 \end{bmatrix} = \boxed{\begin{bmatrix} 0.528 & 0.372 \\ 0.599 & 0.401 \end{bmatrix}} \\[6pt]
+\mathbf{b}^{[2]}_\text{new} &= \begin{bmatrix} 0.60 & 0.60 \end{bmatrix} - 0.5 \cdot \begin{bmatrix} -0.526 & 0.526 \end{bmatrix} = \boxed{\begin{bmatrix} 0.863 & 0.337 \end{bmatrix}}
+\end{align*}
+
+\textbf{Layer 1 Updates}:
+\begin{align*}
+W^{[1]}_\text{new} &= \begin{bmatrix} 0.15 & 0.25 \\ 0.20 & 0.30 \end{bmatrix} - 0.5 \cdot \begin{bmatrix} 0.026 & 0.026 \\ 0.016 & 0.016 \end{bmatrix} = \boxed{\begin{bmatrix} 0.137 & 0.237 \\ 0.192 & 0.292 \end{bmatrix}} \\[6pt]
+\mathbf{b}^{[1]}_\text{new} &= \begin{bmatrix} 0.35 & 0.35 \end{bmatrix} - 0.5 \cdot \begin{bmatrix} 0.053 & 0.053 \end{bmatrix} = \boxed{\begin{bmatrix} 0.324 & 0.324 \end{bmatrix}}
+\end{align*}
+\end{numexample}
+
+\begin{numexample}[Iteration 2 Forward Pass: Proving Loss Drop]
+Now let us run the forward pass on Iteration 2 using these updated parameters for input $\mathbf{x} = \begin{bmatrix} 0.5 & 0.3 \end{bmatrix}$:
+
+\textbf{Layer 1 Forward}:
+\begin{align*}
+z_1^{[1]} &= (0.5)(0.137) + (0.3)(0.192) + 0.324 = 0.0685 + 0.0576 + 0.324 = 0.4501 \\
+z_2^{[1]} &= (0.5)(0.237) + (0.3)(0.292) + 0.324 = 0.1185 + 0.0876 + 0.324 = 0.5301
+\end{align*}
+Applying ReLU: $\mathbf{a}^{[1]} = \begin{bmatrix} 0.4501 & 0.5301 \end{bmatrix}$
+
+\textbf{Layer 2 Forward}:
+\begin{align*}
+z_1^{[2]} &= (0.4501)(0.528) + (0.5301)(0.599) + 0.863 = 0.2377 + 0.3175 + 0.863 = 1.4182 \\
+z_2^{[2]} &= (0.4501)(0.372) + (0.5301)(0.401) + 0.337 = 0.1674 + 0.2126 + 0.337 = 0.7170
+\end{align*}
+Applying Softmax:
+\begin{align*}
+e^{1.4182} &= 4.1297, \quad e^{0.7170} = 2.0483, \quad \sum = 6.1780 \\
+\hat{\mathbf{y}} &= \begin{bmatrix} \frac{4.1297}{6.1780} & \frac{2.0483}{6.1780} \end{bmatrix} = \begin{bmatrix} 0.6685 & 0.3315 \end{bmatrix}
+\end{align*}
+
+\textbf{New Loss}:
+\[
+\mathcal{L}_2 = -\ln(0.6685) = \boxed{0.4027}
+\]
+
+\textbf{Mathematical Proof of Learning}:
+\[
+\mathcal{L}_1 = 0.747 \longrightarrow \mathcal{L}_2 = 0.4027 \quad \text{(\textbf{Loss reduced by 46\% in a single update!})}
+\]
+The predicted probability for the correct class increased from $47.4\%$ to $66.85\%$.
+\end{numexample}
+
+\section{SGD with Momentum}
+
+Momentum adds ``inertia'' to updates, accelerating convergence:
+\begin{align}
+    \mathbf{v}_t &= \beta \cdot \mathbf{v}_{t-1} - \eta \cdot \nabla_\theta \mathcal{L} \\
+    \theta_{t+1} &= \theta_t + \mathbf{v}_t
+\end{align}
+where $\beta \in [0, 1)$ is the momentum coefficient (typically $\beta = 0.9$) and $\mathbf{v}_0 = \mathbf{0}$.
+
+\begin{keyidea}
+Momentum is analogous to a ball rolling downhill. The velocity $\mathbf{v}$ accumulates past gradients, causing the optimizer to move faster in consistent gradient directions and dampen oscillations.
+\end{keyidea}
+
+\begin{numexample}[2-Step Momentum Calculation]
+Consider a single scalar parameter $\theta_0 = 1.0$ with momentum $\beta = 0.9$ and learning rate $\eta = 0.1$.
+Suppose the gradients over two consecutive steps are $g_1 = 0.5$ and $g_2 = 0.4$.
+
+\textbf{Step 1 ($t=1$)}:
+\begin{align*}
+v_1 &= \beta v_0 - \eta g_1 = (0.9)(0) - (0.1)(0.5) = \boxed{-0.05} \\
+\theta_1 &= \theta_0 + v_1 = 1.0 + (-0.05) = \boxed{0.95}
+\end{align*}
+
+\textbf{Step 2 ($t=2$)}:
+\begin{align*}
+v_2 &= \beta v_1 - \eta g_2 = (0.9)(-0.05) - (0.1)(0.4) = -0.045 - 0.040 = \boxed{-0.085} \\
+\theta_2 &= \theta_1 + v_2 = 0.95 + (-0.085) = \boxed{0.865}
+\end{align*}
+
+Notice how velocity accumulated: $v_2$ is larger than $v_1$ because the gradient kept pointing in the same direction!
+\end{numexample}
+
+\section{AdaGrad}
+
+AdaGrad \textit{adapts} the learning rate per-parameter based on historical gradient magnitudes:
+\begin{align}
+    G_t &= G_{t-1} + (\nabla_\theta \mathcal{L})^2 \quad \text{(element-wise squaring)} \\
+    \theta_{t+1} &= \theta_t - \frac{\eta}{\sqrt{G_t} + \epsilon} \cdot \nabla_\theta \mathcal{L}
+\end{align}
+where $\epsilon \approx 10^{-7}$ prevents division by zero.
+
+\begin{warning}
+AdaGrad's cache $G_t$ monotonically increases, causing the effective learning rate to shrink to zero over time. This is why RMSprop and Adam were developed.
+\end{warning}
+
+\section{RMSprop}
+
+RMSprop fixes AdaGrad by using an \textit{exponentially decaying average} of squared gradients:
+\begin{align}
+    G_t &= \rho \cdot G_{t-1} + (1 - \rho) \cdot (\nabla_\theta \mathcal{L})^2 \\
+    \theta_{t+1} &= \theta_t - \frac{\eta}{\sqrt{G_t} + \epsilon} \cdot \nabla_\theta \mathcal{L}
+\end{align}
+where $\rho = 0.9$ (decay rate).
+
+\begin{numexample}
+Suppose $\nabla_\theta \mathcal{L} = 0.5$, $G_0 = 0$, $\rho = 0.9$, $\eta = 0.01$, $\epsilon = 10^{-7}$:
+
+\textbf{Step 1}: $G_1 = 0.9 \cdot 0 + 0.1 \cdot (0.5)^2 = 0.025$
+
+Update: $\Delta\theta = \frac{0.01}{\sqrt{0.025} + 10^{-7}} \cdot 0.5 = \frac{0.01}{0.1581} \cdot 0.5 = \boxed{0.0316}$
+
+\textbf{Step 2} (same gradient): $G_2 = 0.9 \cdot 0.025 + 0.1 \cdot 0.025 = 0.025$
+
+The cache stabilizes, unlike AdaGrad where it would keep growing.
+\end{numexample}
+
+\section{Adam (Adaptive Moment Estimation)}
+
+Adam combines momentum (first moment) with RMSprop (second moment):
+\begin{align}
+    \mathbf{m}_t &= \beta_1 \mathbf{m}_{t-1} + (1-\beta_1) \nabla_\theta \mathcal{L} \quad \text{(first moment estimate)} \\
+    \mathbf{v}_t &= \beta_2 \mathbf{v}_{t-1} + (1-\beta_2) (\nabla_\theta \mathcal{L})^2 \quad \text{(second moment estimate)} \\
+    \hat{\mathbf{m}}_t &= \frac{\mathbf{m}_t}{1 - \beta_1^t} \quad \text{(bias correction)} \\
+    \hat{\mathbf{v}}_t &= \frac{\mathbf{v}_t}{1 - \beta_2^t} \quad \text{(bias correction)} \\
+    \theta_{t+1} &= \theta_t - \frac{\eta}{\sqrt{\hat{\mathbf{v}}_t} + \epsilon} \cdot \hat{\mathbf{m}}_t
+\end{align}
+Default hyperparameters: $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\epsilon = 10^{-7}$.
+
+\begin{numexample}[2-Step Adam Calculation]
+Let $\theta_0 = 1.0$, learning rate $\eta = 0.01$, $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\epsilon = 10^{-7}$.
+Suppose gradients are $g_1 = 0.5$ at $t=1$ and $g_2 = 0.4$ at $t=2$.
+
+\textbf{Step 1 ($t=1$)}:
+\begin{align*}
+    m_1 &= 0.9(0) + 0.1(0.5) = 0.05, \quad v_1 = 0.999(0) + 0.001(0.5^2) = 0.00025 \\
+    \hat{m}_1 &= \frac{0.05}{1 - 0.9^1} = 0.5, \quad \hat{v}_1 = \frac{0.00025}{1 - 0.999^1} = 0.25 \\
+    \theta_1 &= \theta_0 - \frac{0.01}{\sqrt{0.25} + 10^{-7}} \cdot 0.5 = 1.0 - 0.01 = \boxed{0.99}
+\end{align*}
+
+\textbf{Step 2 ($t=2$)}:
+\begin{align*}
+    m_2 &= 0.9(0.05) + 0.1(0.4) = 0.045 + 0.040 = 0.085 \\
+    v_2 &= 0.999(0.00025) + 0.001(0.4^2) = 0.00024975 + 0.00016 = 0.00040975 \\[4pt]
+    \hat{m}_2 &= \frac{0.085}{1 - 0.9^2} = \frac{0.085}{0.19} = 0.44737 \\
+    \hat{v}_2 &= \frac{0.00040975}{1 - 0.999^2} = \frac{0.00040975}{0.001999} = 0.20498 \\[4pt]
+    \theta_2 &= \theta_1 - \frac{0.01}{\sqrt{0.20498} + 10^{-7}} \cdot 0.44737 = 0.99 - \frac{0.01}{0.45275} \cdot 0.44737 \\
+    &= 0.99 - 0.00988 = \boxed{0.98012}
+\end{align*}
+
+Note how bias correction factors $1-\beta_1^t$ ($0.1$ at $t=1 \to 0.19$ at $t=2$) dynamically adjust as $t$ increases.
+\end{numexample}
+
+\begin{keyidea}
+\textbf{Comparison of Optimizers:}
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Optimizer} & \textbf{Momentum} & \textbf{Adaptive LR} & \textbf{Bias Correction} & \textbf{Typical Use} \\
+\midrule
+SGD & \xmark & \xmark & \xmark & Simple tasks \\
+SGD+Momentum & \checkmark & \xmark & \xmark & CNNs \\
+AdaGrad & \xmark & \checkmark & \xmark & Sparse features \\
+RMSprop & \xmark & \checkmark & \xmark & RNNs \\
+Adam & \checkmark & \checkmark & \checkmark & \textbf{Default choice} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{keyidea}
+
+
+% ============================================================
+% CHAPTER 7: PUTTING IT ALL TOGETHER
+% ============================================================
+\chapter{Putting It All Together: Mini-Keras}
+
+\section{Training Loop}
+
+The complete training algorithm:
+
+\begin{enumerate}[label=\textbf{Step \arabic*:}]
+    \item \textbf{Forward pass}: Compute $\hat{\mathbf{y}} = f(\mathbf{x}; \theta)$ through all layers.
+    \item \textbf{Compute loss}: $\mathcal{L} = -\sum_i y_i \ln \hat{y}_i$.
+    \item \textbf{Backward pass}: Compute $\nabla_\theta \mathcal{L}$ via chain rule through each layer in reverse.
+    \item \textbf{Update parameters}: $\theta \leftarrow \theta - \eta \cdot \nabla_\theta \mathcal{L}$ (or Adam, etc.).
+    \item \textbf{Repeat} for all mini-batches and epochs.
+\end{enumerate}
+
+\section{Mini-Batch Training}
+
+For a dataset of $N$ samples with batch size $B$:
+\begin{itemize}
+    \item Number of batches per epoch: $\lfloor N / B \rfloor$
+    \item Each batch computes the average loss over $B$ samples
+    \item Gradients are normalized by $B$ to keep learning rate consistent
+\end{itemize}
+
+The average loss over a mini-batch:
+\begin{equation}
+    \mathcal{L}_\text{batch} = \frac{1}{B} \sum_{i=1}^{B} \mathcal{L}(\hat{\mathbf{y}}_i, \mathbf{y}_i)
+\end{equation}
+
+\section{Mini-Keras Code Mapping}
+
+The following table shows how each mathematical concept maps to Mini-Keras code:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lll}
+\toprule
+\textbf{Math} & \textbf{Mini-Keras Code} & \textbf{Module} \\
+\midrule
+$Z = XW + \mathbf{b}$ & \texttt{Dense(units=128)} & \texttt{mini\_keras.layers} \\
+$\text{ReLU}(Z)$ & \texttt{ReLU()} & \texttt{mini\_keras.activations} \\
+$\text{Softmax}(Z)$ & \texttt{Softmax()} & \texttt{mini\_keras.activations} \\
+$\mathcal{L} = -\sum y_i \ln \hat{y}_i$ & \texttt{CategoricalCrossentropy()} & \texttt{mini\_keras.losses} \\
+$\theta \leftarrow \theta - \eta \nabla \mathcal{L}$ & \texttt{SGD(lr=0.01)} & \texttt{mini\_keras.optimizers} \\
+Adam update & \texttt{Adam(lr=0.01)} & \texttt{mini\_keras.optimizers} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Example: MNIST Digit Classification}
+
+\begin{lstlisting}
+from mini_keras import Sequential, Dense
+from mini_keras.activations import ReLU, Softmax
+from mini_keras.datasets import load_mnist
+from mini_keras.utils import to_categorical
+
+# Load and preprocess MNIST
+(X_train, y_train), (X_test, y_test) = load_mnist()
+X_train = X_train.reshape(-1, 784).astype('float32') / 255.0
+Y_train = to_categorical(y_train, num_classes=10)
+
+# Build model (784 -> 128 -> 64 -> 10)
+model = Sequential()
+model.add(Dense(units=128, input_shape=(784,)))  # Z = X @ W + b
+model.add(ReLU())                                 # A = max(0, Z)
+model.add(Dense(units=64))
+model.add(ReLU())
+model.add(Dense(units=10))
+model.add(Softmax())                              # y_hat = softmax(Z)
+
+# Compile: sets loss and optimizer
+model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+# Train: forward -> loss -> backward -> update (x epochs)
+history = model.fit(X_train, Y_train, epochs=15, batch_size=64)
+\end{lstlisting}
+
+
+% ============================================================
+% APPENDIX
+% ============================================================
+\appendix
+\chapter{Derivative Reference Table}
+
+\begin{center}
+\renewcommand{\arraystretch}{2.0}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Function} & \textbf{Formula} $f(z)$ & \textbf{Derivative} $f'(z)$ \\
+\midrule
+ReLU & $\max(0, z)$ & $\begin{cases} 1 & z > 0 \\ 0 & z \leq 0 \end{cases}$ \\[8pt]
+Sigmoid & $\dfrac{1}{1+e^{-z}}$ & $\sigma(z)(1-\sigma(z))$ \\[8pt]
+Tanh & $\dfrac{e^z - e^{-z}}{e^z + e^{-z}}$ & $1 - \tanh^2(z)$ \\[8pt]
+Linear & $z$ & $1$ \\[8pt]
+Softmax (elem $i$) & $\dfrac{e^{z_i}}{\sum_j e^{z_j}}$ & $s_i(\delta_{ij} - s_j)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Matrix Calculus Identities}
+
+These identities are used throughout the backpropagation derivations:
+
+\begin{enumerate}
+    \item If $\mathbf{z} = W\mathbf{x} + \mathbf{b}$, then $\frac{\partial \mathbf{z}}{\partial W} = \mathbf{x}^\top$ and $\frac{\partial \mathbf{z}}{\partial \mathbf{x}} = W^\top$.
+    
+    \item If $\mathcal{L} = f(\mathbf{z})$ and $\mathbf{z} = g(\mathbf{x})$, then $\frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \frac{\partial \mathcal{L}}{\partial \mathbf{z}} \cdot \frac{\partial \mathbf{z}}{\partial \mathbf{x}}$.
+    
+    \item Element-wise operations: If $\mathbf{a} = \sigma(\mathbf{z})$ element-wise, then $\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \frac{\partial \mathcal{L}}{\partial \mathbf{a}} \odot \sigma'(\mathbf{z})$.
+    
+    \item For cross-entropy + softmax: $\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \hat{\mathbf{y}} - \mathbf{y}$ (the elegantly simple combined gradient).
+\end{enumerate}
+
+\end{document}
